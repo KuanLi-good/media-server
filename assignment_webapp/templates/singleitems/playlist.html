@@ -1,0 +1,34 @@
+{% include 'top.html' %}
+<div class="content">
+    <div class="container details">
+        <!-- Check if We have a valid playlist -->
+            <h2 class="title"> {{playlist[0].playlist_name}} by {{playlist[0].playlist_creator}}</h2>
+
+            <table class="styled">
+                <thead>
+                    <tr>
+                        <td>Track Num</td>
+                        <td>Song Title</td>
+                        <td>Artists</td>
+                    </tr>
+                </thead>
+                {% if not playlist_songs[0] %}
+                    No songs added!
+                    <a href="{{ url_for('list_songs') }}">Add Songs</a>
+                {% endif %}
+
+                <tbody>
+                    {% for instance in playlist_songs %}
+                    <tr class="clickable-tr" data-href="{{ url_for('single_song', song_id=instance.song_id)}}">
+                        <td style="text-align: center">{{ instance.playlist_track_num }}</td>
+                        <td>{{instance.song_title}}</td>
+                        <td>{{instance.artists}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+    
+            </table>
+
+    </div>
+</div>
+{% include 'bottom.html'%}

@@ -1,0 +1,35 @@
+{% include 'top.html' %}
+<div class="content">
+    <div class="container details">
+        <h2 class="title"> All Playlists</h2>
+        <hr/>
+        {% if session.logged_in %}
+        <a class="pure-button" href="{{ url_for('add_playlist')}}">Add Playlist</a>
+        {% endif %}
+        <div>
+        <!-- All All Songs -->
+            <table class="styled">
+                <thead>
+                    <tr>
+                        <td>Playlist ID</td>
+                        <td>Playlist Name</td>
+                        <td>Creator</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for instance in allplaylists %}
+                        <!-- Each row is a link to each individual song page -->
+                        <tr class="clickable-tr" data-href="{{ url_for('single_playlist', playlist_id=instance.playlist_id)}}">
+                            <td style="text-align: center">{{ instance.playlist_id }}</td>
+                            <td>{{instance.playlist_name}}</td>
+                            <td>{{instance.playlist_creator}}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+    
+            </table>
+    
+        </div>
+    </div>
+</div>
+{% include 'bottom.html'%}

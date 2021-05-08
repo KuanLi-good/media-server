@@ -1,0 +1,154 @@
+<style>
+ /* Dropdown Button */
+ .dropbtn {
+  background-color: #3498DB;
+  color: white;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+/* Dropdown button on hover & focus */
+.dropbtn:hover, .dropbtn:focus {
+  background-color: #2980B9;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #ddd}
+
+/* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
+.show {display:block;} 
+</style>
+<script>
+    function addToPlaylist(playlist, song, playlist_name, song_name) {
+        console.log(song)
+        console.log(document.getElementById("response").innerHTML)
+        document.getElementById("response").value = 3
+        const url = "http://127.0.0.1:5000/jspost/"+song+'.'+playlist;
+        const http = new XMLHttpRequest();
+        http.open("GET", url);
+        http.send();
+        http.onreadystatechange=(e)=> {
+            res = http.responseText
+            console.log(res)
+            console.log(playlist)
+            playlist_button = "<a href=\"/playlist/"+playlist+"\">" + playlist_name + "</a>"
+            console.log(playlist_button)
+            if (res=="success"){
+                document.getElementById("response").innerHTML = song_name+
+                " added to " + playlist_button
+            }
+            else{
+                document.getElementById("response").innerHTML = song_name+
+                " is already in " + playlist_button               
+            }
+          }
+
+    }
+   /* When the user clicks on the button,
+toggle between hiding and showing the dropdown content */
+function myFunction() {
+  document.getElementById("myDropdown").classList.toggle("show");
+}
+
+// Close the dropdown menu if the user clicks outside of it
+window.onclick = function(event) {
+  if (!event.target.matches('.dropbtn')) {
+    var dropdowns = document.getElementsByClassName("dropdown-content");
+    var i;
+    for (i = 0; i < dropdowns.length; i++) {
+      var openDropdown = dropdowns[i];
+      if (openDropdown.classList.contains('show')) {
+        openDropdown.classList.remove('show');
+      }
+    }
+  }
+}
+
+
+
+</script>
+{% include 'top.html' %}
+<div class="content">
+    <div class="container details">
+        <!-- Check if We have a valid song -->
+        {% if song | length > 0 %}
+            <h2 class="title"> {{song[0].song_title}} by {{song[0].artist_name}}</h2>
+            {% if session.logged_in %}
+            <div class="dropdown">
+                    <button onclick="myFunction()" class="dropbtn">add to playlist</button>
+                    <div id="myDropdown" class="dropdown-content">
+                    {% for instance in allplaylists %}
+                    {% if instance.playlist_creator == user["username"]%}
+                    <a onClick="addToPlaylist('{{instance.playlist_id}}', '{{song[0].song_id}}', '{{instance.playlist_name}}', '{{song[0].song_title}}')">{{instance.playlist_name}}</a>
+                    {% endif %}
+                    {% endfor %}
+                    <i>
+                      <a href="{{ url_for('add_playlist')}}">Create Playlist</a>
+                    </i>
+                    </div>
+                </div> 
+                <div id="response"></div>
+                {% endif %}
+
+
+            
+            <br/>
+            Song is {{song[0].length}} seconds long.
+            <hr/>
+            <h3> Artworks </h3>
+            {% for instance in songmetadata %}
+                {% if instance.md_type_name == 'artwork' %}
+                    <img src="{{instance.md_value}}" alt="image">
+                    <br/>© Spotify Public Domain 2019.
+                {% endif %}
+            {% endfor %}
+            <br/>
+            <h3> Descriptions </h3>
+            {% for instance in songmetadata %}
+                {% if instance.md_type_name == 'description' %}
+                    <div>
+                        {{instance.md_value}}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            <br/>
+            <h3> Genres </h3>
+            {% for instance in songmetadata %}
+                {% if instance.md_type_name == 'song genre' %}
+                    <div>
+                        {{instance.md_value}}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <h2 class="title"> Invalid Song ID</h2>
+        {% endif %}
+    </div>
+</div>
+{% include 'bottom.html'%}

@@ -1,0 +1,151 @@
+<style>
+    .dropbtn {
+     background-color: #3498DB;
+     color: white;
+     padding: 16px;
+     font-size: 16px;
+     border: none;
+     cursor: pointer;
+   }
+   
+   .dropbtn:hover, .dropbtn:focus {
+     background-color: #2980B9;
+   }
+   
+   .dropdown {
+     position: relative;
+     display: inline-block;
+   }
+   
+   .dropdown-content {
+     display: none;
+     position: absolute;
+     background-color: #f1f1f1;
+     min-width: 160px;
+     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+     z-index: 1;
+   }
+   
+   .dropdown-content a {
+     color: black;
+     padding: 12px 16px;
+     text-decoration: none;
+     display: block;
+   }
+   
+   .dropdown-content a:hover {background-color: #ddd}
+   
+   .show {display:block;} 
+   </style>
+
+
+   <script>
+       function addToPlaylist(playlist, song, playlist_name, song_name) {
+           document.getElementById("response"+song).value = 3
+        //    we send the information of song_id and playlist_id to our routes.py, so that the database can be updated
+           const url = "http://127.0.0.1:5000/jspost/"+song+'.'+playlist;
+           const http = new XMLHttpRequest();
+           http.open("GET", url);
+           http.send();
+           http.onreadystatechange=(e)=> {
+               res = http.responseText
+            //    this playlist_button sends the user to their recently updated playlist
+               playlist_button = "<a href=\"/playlist/"+playlist+"\">" + playlist_name + "</a>"
+            //    our response is updated, dependant on our servers response
+               if (res=="success"){
+                   document.getElementById("response"+song).innerHTML = song_name+
+                   " added to " + playlist_button
+               }
+               else{
+                   document.getElementById("response"+song).innerHTML = song_name+
+                   " is already in " + playlist_button               
+               }
+             }
+   
+       }
+
+   function dropdown(song_id) {
+    //    this basic dropdown is based on a template found online, but changes were made to 
+    //    facilitate different drop down menus for each song in the list
+     document.getElementById("myDropdown"+song_id).classList.toggle("show");
+    //  the below closes other dropdowns that may have been opened
+     var dropdowns = document.getElementsByClassName("dropdown-content");
+       var i;
+       for (i = 0; i < dropdowns.length; i++) {
+         var openDropdown = dropdowns[i];
+            if (openDropdown.id != "myDropdown"+song_id){
+                if (openDropdown.classList.contains('show')) {
+            openDropdown.classList.remove('show');
+            }
+         }
+       }    
+   }
+   
+   window.onclick = function(event) {
+    //    this closes all dropdown menus when anything else is clicked
+     if (!event.target.matches('.dropbtn')) {
+       var dropdowns = document.getElementsByClassName("dropdown-content");
+       var i;
+       for (i = 0; i < dropdowns.length; i++) {
+         var openDropdown = dropdowns[i];
+         if (openDropdown.classList.contains('show')) {
+           openDropdown.classList.remove('show');
+         }
+       }
+     }
+   }
+   
+   </script>
+{% include 'top.html' %}
+<div class="content">
+    <div class="container details">
+        <h2 class="title"> All Songs</h2>
+        <hr/>
+        {% if session.logged_in %}
+        <a class="pure-button" href="{{ url_for('add_song')}}">Add Song</a>
+        {% endif %}
+        <div>
+        <!-- All All Songs -->
+            <table class="styled">
+                <thead>
+                    <tr>
+                        <td>Song ID</td>
+                        <td>Song Name</td>
+                        <td>Artists</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for instance in allsongs %}
+                        <tr >
+                            <td style="text-align: center" >
+                                <a href="{{ url_for('single_song', song_id=instance.song_id)}}"> {{ instance.song_id }} </a></td>
+                            <td> <a href="{{ url_for('single_song', song_id=instance.song_id)}}">      {{instance.song_title}}         </a> </td>
+                            <td> <a href="{{ url_for('single_song', song_id=instance.song_id)}}">   {{instance.artists}}  </a>  </td>
+                            <td>
+                                {% if session.logged_in %}
+                                <div class="dropdown">
+                                    <button onclick="dropdown({{instance.song_id}})" class="dropbtn"> add to playlist</button>
+                                    <div id="myDropdown{{instance.song_id}}" class="dropdown-content">
+                                    {% for p in allplaylists %}
+                                    {% if p.playlist_creator == user["username"]%}
+                                    <a onClick="addToPlaylist('{{p.playlist_id}}', '{{instance.song_id}}', '{{p.playlist_name}}', '{{instance.song_title}}')">{{p.playlist_name}}</a>
+                                    {% endif %}
+                                    {% endfor %}
+                                    <i>
+                                      <a href="{{ url_for('add_playlist')}}">Create Playlist</a>
+                                    </i>
+                                    </div>
+                                </div> 
+                                <div id="response{{instance.song_id}}"></div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+    
+            </table>
+    
+        </div>
+    </div>
+</div>
+{% include 'bottom.html'%}
